@@ -18,9 +18,8 @@
 
 #pragma once
 
-#include <c10/macros/Macros.h>
 #include <c10/util/ArrayRef.h>
-#include <c10/util/Exception.h>
+#include <torch/headeronly/util/Exception.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -345,11 +344,11 @@ class GenericPackedTensorAccessor<ItemAccessor,
 template <size_t N, typename index_t>
 struct HeaderOnlyIndexBoundsCheck {
   explicit HeaderOnlyIndexBoundsCheck(index_t i) {
-    TORCH_CHECK(0 <= i && i < index_t{N},
-                "Index ",
-                i,
-                " is not within bounds of a tensor of dimension ",
-                N);
+    STD_TORCH_CHECK(0 <= i && i < index_t{N},
+                    "Index ",
+                    i,
+                    " is not within bounds of a tensor of dimension ",
+                    N);
   }
 };
 

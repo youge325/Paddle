@@ -15,6 +15,7 @@
 #pragma once
 
 #include <ATen/core/Tensor.h>
+#include <ATen/core/ivalue.h>
 
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
 #include <torch/csrc/stable/device.h>
@@ -84,11 +85,15 @@ class Tensor {
     return IntHeaderOnlyArrayRef(tensor_->strides());
   }
 
+  int64_t size(int64_t dim) const { return tensor_->size(dim); }
+
   int64_t stride(int64_t dim) const { return tensor_->stride(dim); }
 
   int64_t dim() const { return tensor_->dim(); }
 
   int64_t numel() const { return tensor_->numel(); }
+
+  size_t element_size() const { return tensor_->element_size(); }
 
   bool is_contiguous() const { return tensor_->is_contiguous(); }
 
@@ -100,6 +105,12 @@ class Tensor {
 
   bool is_cpu() const { return tensor_->is_cpu(); }
 
+  bool is_cuda() const { return tensor_->is_cuda(); }
+
+  bool defined() const { return tensor_->defined(); }
+
+  operator at::Tensor() const { return *tensor_; }  // NOLINT
+
   const at::Tensor& _PD_GetInner() const { return *tensor_; }
   at::Tensor& _PD_GetInner() { return *tensor_; }
 
@@ -108,3 +119,13 @@ class Tensor {
 };
 
 }  // namespace torch::stable
+
+namespace torch {
+
+template <>
+inline stable::Tensor generic_to(const IValue& ivalue,
+                                 _fake_type<stable::Tensor>) {
+  return stable::Tensor(ivalue.toTensor());
+}
+
+}  // namespace torch

@@ -18,12 +18,12 @@
 #include <ATen/ops/cat.h>
 #include <ATen/ops/permute.h>
 #include <ATen/ops/transpose.h>
-#include <c10/util/Exception.h>
 #include <torch/library.h>
 
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
 #include <torch/csrc/stable/tensor.h>
 #include <torch/headeronly/core/TensorAccessor.h>
+#include <torch/headeronly/util/Exception.h>
 
 #include <cstdint>
 #include <string>
@@ -121,16 +121,16 @@ inline AOTITorchError torch_call_dispatcher(
       int64_t k = torch::stable::detail::to<int64_t>(stack[1]);
       auto dims = torch::stable::detail::to<std::vector<int64_t>>(stack[2]);
 
-      TORCH_CHECK(dims.size() == 2,
-                  "aten::rot90 expects exactly 2 dims, got ",
-                  dims.size());
+      STD_TORCH_CHECK(dims.size() == 2,
+                      "aten::rot90 expects exactly 2 dims, got ",
+                      dims.size());
 
       int64_t dim0 = dims[0];
       int64_t dim1 = dims[1];
       const int64_t ndim = self.dim();
       if (dim0 < 0) dim0 += ndim;
       if (dim1 < 0) dim1 += ndim;
-      TORCH_CHECK(
+      STD_TORCH_CHECK(
           dim0 >= 0 && dim0 < ndim && dim1 >= 0 && dim1 < ndim && dim0 != dim1,
           "aten::rot90 got invalid dims (",
           dims[0],

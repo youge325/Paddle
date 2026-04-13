@@ -120,16 +120,6 @@ inline void warn(const Warning& warning) {
   std::cerr << "Warning: " << warning.msg() << std::endl;
 }
 
-// Helper to concatenate message arguments
-template <typename... Args>
-inline std::string torch_warn_msg_impl(const Args&... args) {
-  std::ostringstream oss;
-  (oss << ... << args);
-  return oss.str();
-}
-
-inline std::string torch_warn_msg_impl() { return ""; }
-
 }  // namespace c10
 
 // TORCH_WARN macros
@@ -138,10 +128,15 @@ inline std::string torch_warn_msg_impl() { return ""; }
 #else
 #define _TORCH_WARN_WITH(warning_t, ...)                                      \
   do {                                                                        \
+    auto _torch_warn_msg = [&](const auto&... _args) {                        \
+      std::ostringstream _oss;                                                \
+      ((_oss << _args), ...);                                                 \
+      return _oss.str();                                                      \
+    }(__VA_ARGS__);                                                           \
     ::c10::warn(::c10::Warning(                                               \
         warning_t{},                                                          \
         std::make_tuple(__func__, __FILE__, static_cast<uint32_t>(__LINE__)), \
-        ::c10::torch_warn_msg_impl(__VA_ARGS__),                              \
+        _torch_warn_msg,                                                      \
         false));                                                              \
   } while (0)
 #endif

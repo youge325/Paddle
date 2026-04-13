@@ -23,10 +23,10 @@
 #include <ATen/ops/select.h>
 #include <ATen/ops/to.h>
 #include <ATen/ops/transpose.h>
-#include <c10/util/Exception.h>
 
 #include <torch/csrc/stable/device.h>
 #include <torch/csrc/stable/tensor.h>
+#include <torch/headeronly/util/Exception.h>
 
 #include <functional>
 #include <optional>
@@ -153,9 +153,9 @@ inline Tensor rot90(const Tensor& self,
                     int64_t k,
                     IntHeaderOnlyArrayRef dims = IntHeaderOnlyArrayRef({0,
                                                                         1})) {
-  TORCH_CHECK(dims.size() == 2,
-              "rot90 expects dims to contain exactly 2 dimensions, got ",
-              dims.size());
+  STD_TORCH_CHECK(dims.size() == 2,
+                  "rot90 expects dims to contain exactly 2 dimensions, got ",
+                  dims.size());
 
   const int64_t ndim = self.dim();
   int64_t dim0 = dims[0];
@@ -163,7 +163,7 @@ inline Tensor rot90(const Tensor& self,
   if (dim0 < 0) dim0 += ndim;
   if (dim1 < 0) dim1 += ndim;
 
-  TORCH_CHECK(
+  STD_TORCH_CHECK(
       dim0 >= 0 && dim0 < ndim && dim1 >= 0 && dim1 < ndim && dim0 != dim1,
       "rot90 received invalid dims: (",
       dims[0],
