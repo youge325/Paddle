@@ -56,3 +56,13 @@ using c10::kIPU;
 using c10::kPrivateUse1;
 using c10::kXPU;
 }  // namespace at
+
+namespace torch::headeronly {
+using c10::DeviceType;
+using c10::kCPU;
+using c10::kCUDA;
+using c10::kCUSTOM;
+using c10::kIPU;
+using c10::kPrivateUse1;
+using c10::kXPU;
+}  // namespace torch::headeronly

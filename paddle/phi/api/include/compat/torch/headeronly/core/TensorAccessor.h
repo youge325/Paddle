@@ -31,6 +31,10 @@
 
 namespace torch::headeronly {
 
+template <typename T>
+using HeaderOnlyArrayRef = c10::ArrayRef<T>;
+using IntHeaderOnlyArrayRef = c10::IntArrayRef;
+
 // The PtrTraits argument to the TensorAccessor/GenericPackedTensorAccessor
 // is used to enable the __restrict__ keyword/modifier for the data
 // passed to cuda.

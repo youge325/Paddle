@@ -314,3 +314,8 @@ inline std::ostream& operator<<(std::ostream& stream, ScalarType scalar_type) {
 }
 
 }  // namespace c10
+
+namespace torch::headeronly {
+using c10::ScalarType;
+using c10::toString;
+}  // namespace torch::headeronly
