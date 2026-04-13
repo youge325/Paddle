@@ -139,9 +139,23 @@ ParsedType SchemaTypeParser::parseType() {
     out.alias_info = parseAliasAnnotation();
   }
 
-  skipWhitespace();
-  if (consumeChar(TORCH_SCHEMA_CH_QMARK)) {
-    out.type = c10::makeSchemaOptionalType(out.type);
+  while (true) {
+    skipWhitespace();
+    if (consumeChar(TORCH_SCHEMA_CH_LBRACKET)) {
+      const size_t before_inner = pos_;
+      skipWhitespace();
+      if (consumeChar(TORCH_SCHEMA_CH_RBRACKET)) {
+        out.type = c10::makeSchemaListType(out.type);
+        continue;
+      }
+      pos_ = before_inner - 1;
+      break;
+    }
+    if (consumeChar(TORCH_SCHEMA_CH_QMARK)) {
+      out.type = c10::makeSchemaOptionalType(out.type);
+      continue;
+    }
+    break;
   }
   return out;
 }

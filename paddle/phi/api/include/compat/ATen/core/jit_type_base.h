@@ -40,6 +40,7 @@ namespace c10 {
   _(FloatType)              \
   _(BoolType)               \
   _(NoneType)               \
+  _(ListType)               \
   _(TupleType)              \
   _(NumberType)             \
   _(OptionalType)           \

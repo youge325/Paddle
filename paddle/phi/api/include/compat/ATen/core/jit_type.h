@@ -102,6 +102,45 @@ class SchemaOptionalType final : public SharedType {
   std::vector<TypePtr> elem_;
 };
 
+class SchemaListType final : public SharedType {
+ public:
+  static const TypeKind Kind = TypeKind::ListType;
+
+  static std::shared_ptr<SchemaListType> create(TypePtr elem) {
+    return std::shared_ptr<SchemaListType>(new SchemaListType(std::move(elem)));
+  }
+
+  bool equals(const Type& rhs) const override {
+    if (rhs.kind() != kind()) {
+      return false;
+    }
+    const auto contained = rhs.containedTypes();
+    return contained.size() == 1 && *elem_.front() == *contained.front();
+  }
+
+  std::string str() const override { return elem_.front()->str() + "[]"; }
+
+  at::ArrayRef<TypePtr> containedTypes() const override { return elem_; }
+
+  TypePtr createWithContained(
+      std::vector<TypePtr> contained_types) const override {
+    TORCH_CHECK(contained_types.size() == 1,
+                "List type expects exactly one contained type");
+    return create(std::move(contained_types.front()));
+  }
+
+ private:
+  explicit SchemaListType(TypePtr elem)
+      : SharedType(Kind), elem_{std::move(elem)} {}
+
+  std::string annotation_str_impl(
+      const TypePrinter& printer = nullptr) const override {
+    return elem_.front()->annotation_str(printer) + "[]";
+  }
+
+  std::vector<TypePtr> elem_;
+};
+
 class SchemaTupleType final : public SharedType {
  public:
   static const TypeKind Kind = TypeKind::TupleType;
@@ -177,6 +216,10 @@ inline TypePtr makeSchemaAtomicType(TypeKind kind, std::string repr) {
 
 inline TypePtr makeSchemaOptionalType(TypePtr elem) {
   return detail::SchemaOptionalType::create(std::move(elem));
+}
+
+inline TypePtr makeSchemaListType(TypePtr elem) {
+  return detail::SchemaListType::create(std::move(elem));
 }
 
 inline TypePtr makeSchemaTupleType(std::vector<TypePtr> elements) {
