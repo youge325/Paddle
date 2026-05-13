@@ -20,11 +20,9 @@
 #include <optional>
 #include <vector>
 
-#include "paddle/phi/api/include/context_pool.h"
 #include "paddle/phi/backends/gpu/gpu_context.h"
 #if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
 #include "paddle/phi/backends/gpu/gpu_info.h"
-#include "paddle/phi/core/cuda_stream.h"
 #endif
 
 namespace c10::cuda {
@@ -52,6 +50,7 @@ struct DevicePools {
 };
 
 std::vector<std::unique_ptr<DevicePools>> g_pools;
+std::atomic<bool> g_paddle_compat_enabled{false};
 
 #ifdef PADDLE_WITH_HIP
 thread_local std::vector<std::optional<hipStream_t>>
@@ -61,9 +60,6 @@ thread_local std::vector<std::optional<cudaStream_t>>
     g_thread_local_current_streams;
 #endif
 
-std::vector<std::unique_ptr<phi::CUDAStream>> g_compat_phi_streams;
-std::mutex g_compat_phi_streams_mutex;
-
 void initGlobalState() {
   std::call_once(g_init_once, []() {
     g_num_gpus =
@@ -72,7 +68,6 @@ void initGlobalState() {
     for (auto& ptr : g_pools) {
       ptr = std::make_unique<DevicePools>();
     }
-    g_compat_phi_streams.resize(g_num_gpus);
   });
 }
 
@@ -111,12 +106,6 @@ inline void check_gpu(c10::DeviceIndex device_index) {
               " is out of index range [0, ",
               static_cast<int>(g_num_gpus),
               ")");
-}
-
-inline phi::GPUContext* getMutableGPUContext(c10::DeviceIndex device_index) {
-  return static_cast<phi::GPUContext*>(
-      paddle::experimental::DeviceContextPool::Instance().GetMutable(
-          phi::GPUPlace(device_index)));
 }
 
 #endif  // defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
@@ -245,29 +234,45 @@ void setCurrentCUDAStream(CUDAStream stream) {
     g_thread_local_current_streams.resize(idx + 1);
   }
   g_thread_local_current_streams[idx] = stream.stream();
-  // Also update Paddle's global device context stream for backward
-  // compatibility, so that Paddle kernel launches (which read from
-  // GPUContext) still use the correct stream.
-  // Use SetCUDAStream instead of SetStream to avoid destroying
-  // external stream handles (e.g., pool streams from getStreamFromPool).
-  auto* ctx = getMutableGPUContext(idx);
-  {
-    std::lock_guard<std::mutex> lock(g_compat_phi_streams_mutex);
-    if (!g_compat_phi_streams[idx]) {
-#ifdef PADDLE_WITH_HIP
-      g_compat_phi_streams[idx] = std::make_unique<phi::CUDAStream>(
-          phi::GPUPlace(idx), static_cast<hipStream_t>(0));
-#else
-      g_compat_phi_streams[idx] = std::make_unique<phi::CUDAStream>(
-          phi::GPUPlace(idx), static_cast<cudaStream_t>(0));
-#endif
-    }
-    g_compat_phi_streams[idx]->set_raw_stream(stream.stream());
-    ctx->SetCUDAStream(g_compat_phi_streams[idx].get(), true);
+  if (g_paddle_compat_enabled.load(std::memory_order_acquire)) {
+    phi::SetCurrentExternalStream(phi::GPUPlace(idx), stream.stream());
   }
 #else
   (void)stream;
 #endif
 }
+
+namespace impl {
+
+void setPaddleCompatEnabled(bool enabled) {
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
+  initGlobalState();
+  g_paddle_compat_enabled.store(enabled, std::memory_order_release);
+  for (c10::DeviceIndex idx = 0; idx < g_num_gpus; ++idx) {
+    if (!enabled) {
+      phi::ClearCurrentExternalStream(phi::GPUPlace(idx));
+      continue;
+    }
+    if (idx < static_cast<c10::DeviceIndex>(
+                  g_thread_local_current_streams.size()) &&
+        g_thread_local_current_streams[idx].has_value()) {
+      phi::SetCurrentExternalStream(phi::GPUPlace(idx),
+                                    *g_thread_local_current_streams[idx]);
+    }
+  }
+#else
+  (void)enabled;
+#endif
+}
+
+bool isPaddleCompatEnabled() {
+#if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
+  return g_paddle_compat_enabled.load(std::memory_order_acquire);
+#else
+  return false;
+#endif
+}
+
+}  // namespace impl
 
 }  // namespace c10::cuda

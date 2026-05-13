@@ -28,6 +28,9 @@
 #include "gtest/gtest.h"
 #include "paddle/phi/api/include/context_pool.h"
 #include "paddle/phi/backends/gpu/gpu_context.h"
+#ifdef PADDLE_WITH_CUDA
+#include "paddle/phi/backends/dynload/cudnn.h"
+#endif
 #if defined(PADDLE_WITH_CUDA) || defined(PADDLE_WITH_HIP)
 #include "paddle/phi/core/cuda_stream.h"
 #endif
@@ -36,6 +39,19 @@
 namespace {
 
 using StreamCallbackGate = std::atomic<bool>;
+
+struct CompatStreamSyncGuard {
+  explicit CompatStreamSyncGuard(bool enabled)
+      : previous(c10::cuda::impl::isPaddleCompatEnabled()) {
+    c10::cuda::impl::setPaddleCompatEnabled(enabled);
+  }
+
+  ~CompatStreamSyncGuard() {
+    c10::cuda::impl::setPaddleCompatEnabled(previous);
+  }
+
+  bool previous;
+};
 
 #ifdef PADDLE_WITH_HIP
 void BlockingStreamCallback(hipStream_t /*stream*/,
@@ -213,6 +229,7 @@ TEST(CUDAStreamTest, DefaultStreamUnaffectedBySetCurrentCUDAStream) {
   if (!at::cuda::is_available()) {
     return;
   }
+  CompatStreamSyncGuard compat_guard(true);
   // Snapshot the current stream before we touch it so we can
   // restore it afterward and avoid polluting subsequent tests.
   auto original_stream = c10::cuda::getCurrentCUDAStream();
@@ -239,6 +256,29 @@ TEST(CUDAStreamTest, DefaultStreamUnaffectedBySetCurrentCUDAStream) {
             original_stream.stream());
 }
 
+TEST(CUDAStreamTest, SetCurrentCUDAStreamDoesNotWriteGPUContextWhenDisabled) {
+  if (!at::cuda::is_available()) {
+    return;
+  }
+  CompatStreamSyncGuard compat_guard(false);
+
+  auto original_stream = c10::cuda::getCurrentCUDAStream();
+  auto pool_stream = c10::cuda::getStreamFromPool(/*isHighPriority=*/false);
+  auto place = phi::GPUPlace(pool_stream.device_index());
+  auto* ctx = static_cast<phi::GPUContext*>(
+      paddle::experimental::DeviceContextPool::Instance().GetMutable(place));
+  auto original_phi_stream = ctx->stream();
+
+  c10::cuda::setCurrentCUDAStream(pool_stream);
+
+  EXPECT_EQ(c10::cuda::getCurrentCUDAStream(), pool_stream);
+  EXPECT_EQ(ctx->stream(), original_phi_stream)
+      << "When compat is disabled, c10 stream TLS must not mutate or override "
+         "Paddle GPUContext.";
+
+  c10::cuda::setCurrentCUDAStream(original_stream);
+}
+
 // Verify getCurrentCUDAStream's thread-local semantics: a child thread
 // that has not explicitly set a current stream sees the default stream,
 // while each thread's own explicit set stays local to that thread.
@@ -246,6 +286,7 @@ TEST(CUDAStreamTest, SetCurrentCUDAStreamWriteIsolatedAcrossThreads) {
   if (!at::cuda::is_available()) {
     return;
   }
+  CompatStreamSyncGuard compat_guard(true);
 
   auto original_stream = c10::cuda::getCurrentCUDAStream();
 
@@ -254,6 +295,8 @@ TEST(CUDAStreamTest, SetCurrentCUDAStreamWriteIsolatedAcrossThreads) {
 
   c10::cuda::setCurrentCUDAStream(pool_a);
   EXPECT_EQ(c10::cuda::getCurrentCUDAStream(), pool_a);
+  auto place = phi::GPUPlace(pool_a.device_index());
+  EXPECT_EQ(paddle::GetCurrentCUDAStream(place)->raw_stream(), pool_a.stream());
 
   std::thread unset_child([&]() {
     auto child_stream = c10::cuda::getCurrentCUDAStream(pool_a.device_index());
@@ -261,6 +304,10 @@ TEST(CUDAStreamTest, SetCurrentCUDAStreamWriteIsolatedAcrossThreads) {
               c10::cuda::getDefaultCUDAStream(pool_a.device_index()))
         << "A thread without c10 TLS must not inherit another thread's "
            "Paddle GPUContext stream.";
+    EXPECT_NE(paddle::GetCurrentCUDAStream(place)->raw_stream(),
+              pool_a.stream())
+        << "A thread without phi external stream TLS must not inherit the "
+           "main thread's compat stream override.";
   });
   unset_child.join();
 
@@ -281,6 +328,42 @@ TEST(CUDAStreamTest, SetCurrentCUDAStreamWriteIsolatedAcrossThreads) {
   c10::cuda::setCurrentCUDAStream(original_stream);
 }
 
+#ifdef PADDLE_WITH_CUDA
+TEST(CUDAStreamTest, ExternalStreamUsesStreamScopedDnnHandle) {
+  if (!at::cuda::is_available()) {
+    return;
+  }
+  CompatStreamSyncGuard compat_guard(true);
+
+  auto original_stream = c10::cuda::getCurrentCUDAStream();
+  auto pool_a = c10::cuda::getStreamFromPool(/*isHighPriority=*/false);
+  auto pool_b = c10::cuda::getStreamFromPool(/*isHighPriority=*/false);
+  auto* ctx = static_cast<phi::GPUContext*>(
+      paddle::experimental::DeviceContextPool::Instance().GetMutable(
+          phi::GPUPlace(pool_a.device_index())));
+
+  c10::cuda::setCurrentCUDAStream(pool_a);
+  auto dnn_a = ctx->cudnn_handle();
+  cudaStream_t dnn_stream_a = nullptr;
+  ASSERT_EQ(phi::dynload::cudnnGetStream(dnn_a, &dnn_stream_a),
+            CUDNN_STATUS_SUCCESS);
+  EXPECT_EQ(dnn_stream_a, pool_a.stream());
+
+  c10::cuda::setCurrentCUDAStream(pool_b);
+  auto dnn_b = ctx->cudnn_handle();
+  cudaStream_t dnn_stream_b = nullptr;
+  ASSERT_EQ(phi::dynload::cudnnGetStream(dnn_b, &dnn_stream_b),
+            CUDNN_STATUS_SUCCESS);
+  EXPECT_EQ(dnn_stream_b, pool_b.stream());
+  EXPECT_NE(dnn_a, dnn_b);
+
+  c10::cuda::setCurrentCUDAStream(pool_a);
+  EXPECT_EQ(ctx->cudnn_handle(), dnn_a);
+
+  c10::cuda::setCurrentCUDAStream(original_stream);
+}
+#endif
+
 TEST(CUDAStreamTest, ExplicitDefaultStreamDoesNotFallbackToGPUContext) {
   if (!at::cuda::is_available()) {
     return;
@@ -296,13 +379,14 @@ TEST(CUDAStreamTest, ExplicitDefaultStreamDoesNotFallbackToGPUContext) {
   auto* ctx = static_cast<phi::GPUContext*>(
       paddle::experimental::DeviceContextPool::Instance().GetMutable(
           phi::GPUPlace(device_index)));
-  phi::CUDAStream wrapper(phi::GPUPlace(device_index), pool.stream());
-  ctx->SetCUDAStream(&wrapper, /*clear=*/false);
+  auto original_phi_stream = ctx->stream();
+  ctx->SetStream(pool.stream());
 
   auto cur = c10::cuda::getCurrentCUDAStream(device_index);
   EXPECT_EQ(cur, default_stream)
       << "An explicit c10 default stream must not be treated as unset TLS.";
 
+  ctx->SetStream(original_phi_stream);
   c10::cuda::setCurrentCUDAStream(original);
 }
 

@@ -173,6 +173,15 @@ def _register_compat_override():
     _extend_torch_proxy_overrides(compat_overrides)
 
 
+def _set_cpp_compat_enabled(enabled: bool) -> None:
+    try:
+        import paddle
+
+        paddle.base.core.torch_compat._set_compat_enabled(enabled)
+    except (AttributeError, ImportError):
+        pass
+
+
 def _is_specific_module_or_its_submodule(name: str, module: str) -> bool:
     return name == module or name.startswith(f"{module}.")
 
@@ -520,6 +529,7 @@ def enable_compat(
         extend_torch_proxy_blocked_modules(blocked_modules)
     scope = _parse_scope(scope)
     _register_compat_override()
+    _set_cpp_compat_enabled(True)
     _swap_torch_modules_to_cache()
     _modify_scope_of_torch_proxy(scope, silent=silent)
     sys.meta_path.insert(0, TORCH_PROXY_FINDER)
@@ -543,6 +553,7 @@ def disable_compat() -> None:
             ... except ModuleNotFoundError:
             ...     print("PyTorch compat is disabled.")
     """
+    _set_cpp_compat_enabled(False)
     if TORCH_PROXY_FINDER in sys.meta_path:
         sys.meta_path.remove(TORCH_PROXY_FINDER)
         _clear_torch_proxy_modules()

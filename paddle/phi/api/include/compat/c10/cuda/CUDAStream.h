@@ -171,6 +171,14 @@ PADDLE_API void setCurrentCUDAStream(CUDAStream stream);
 
 PADDLE_API CUDAStream getDefaultCUDAStream(c10::DeviceIndex device_index = -1);
 
+namespace impl {
+
+PADDLE_API void setPaddleCompatEnabled(bool enabled);
+
+PADDLE_API bool isPaddleCompatEnabled();
+
+}  // namespace impl
+
 inline std::ostream& operator<<(std::ostream& stream, const CUDAStream& s) {
   return stream << s.unwrap();
 }

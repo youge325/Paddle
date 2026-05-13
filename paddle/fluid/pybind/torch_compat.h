@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include <c10/cuda/CUDAStream.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <torch/library.h>
@@ -415,5 +416,15 @@ void BindTorchCompat(pybind11::module* m) {
          "Get a Python wrapper for the specified custom class",
          py::arg("namespace_name"),
          py::arg("class_name"));
+
+  m->def("_set_compat_enabled",
+         &c10::cuda::impl::setPaddleCompatEnabled,
+         "Enable or disable C++ stream synchronization for torch compat",
+         py::arg("enabled"));
+
+  m->def("_is_compat_enabled",
+         &c10::cuda::impl::isPaddleCompatEnabled,
+         "Return whether C++ stream synchronization for torch compat is "
+         "enabled");
 }
 }  // namespace paddle::pybind

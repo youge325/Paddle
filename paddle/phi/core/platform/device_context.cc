@@ -103,6 +103,8 @@ inline std::unique_ptr<DeviceContext> CreateDeviceContext(
         cuda_ctx,
         common::errors::InvalidArgument(
             "Failed to dynamic_cast dev_ctx into phi::GPUContext."));
+    cuda_ctx->SetAllowExternalStreamOverride(
+        !disable_setting_default_stream_for_allocator);
 
     if (!disable_setting_default_stream_for_allocator) {
       instance.SetDefaultStream(GPUPlace(p.GetDeviceId()), cuda_ctx->stream());

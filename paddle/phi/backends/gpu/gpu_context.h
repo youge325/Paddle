@@ -36,10 +36,33 @@ limitations under the License. */
 #include "paddle/phi/common/place.h"
 #include "paddle/phi/core/attribute.h"
 #include "paddle/phi/core/device_context.h"
+#include "paddle/utils/optional.h"
 
 namespace phi {
 
 class CUDAStream;
+
+PADDLE_API void SetCurrentExternalStream(const GPUPlace& place,
+                                         gpuStream_t stream);
+
+PADDLE_API void ClearCurrentExternalStream(const GPUPlace& place);
+
+PADDLE_API paddle::optional<gpuStream_t> GetCurrentExternalStream(
+    const GPUPlace& place);
+
+class PADDLE_API ScopedExternalStreamGuard {
+ public:
+  ScopedExternalStreamGuard(const GPUPlace& place, gpuStream_t stream);
+  ~ScopedExternalStreamGuard();
+
+  ScopedExternalStreamGuard(const ScopedExternalStreamGuard&) = delete;
+  ScopedExternalStreamGuard& operator=(const ScopedExternalStreamGuard&) =
+      delete;
+
+ private:
+  GPUPlace place_;
+  paddle::optional<gpuStream_t> previous_stream_;
+};
 
 class DnnWorkspaceHandle {
  public:
@@ -108,6 +131,16 @@ class PADDLE_API GPUContext : public DeviceContext,
 
   /*! \brief  Return CUDAStream in the device context. */
   CUDAStream* cuda_stream() const;
+
+  const Allocator& GetAllocator() const override;
+
+  using DeviceContext::Alloc;
+
+  void* Alloc(TensorBase* tensor,
+              DataType dtype,
+              size_t requested_size = 0,
+              bool pinned = false,
+              bool fake_alloc = false) const override;
 
   /*! \brief  Return cudnn  handle in the device context. */
   dnnHandle_t cudnn_handle() const;
@@ -229,6 +262,8 @@ class PADDLE_API GPUContext : public DeviceContext,
   // are protected by default.
   // clear: whether clear the original CUDAStream or not
   void SetCUDAStream(CUDAStream*, bool clear = true);
+
+  void SetAllowExternalStreamOverride(bool allow);
 
  protected:
   void SetEigenDevice(Eigen::GpuDevice*);

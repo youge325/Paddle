@@ -109,7 +109,7 @@ class PADDLE_API DeviceContext {
    *
    * @return Allocator
    */
-  const Allocator& GetAllocator() const;
+  virtual const Allocator& GetAllocator() const;
 
   /**
    * @brief Get the const device-related Allocator object.
