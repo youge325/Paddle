@@ -359,6 +359,18 @@ class Tensor : public TensorBase {
                        const at::Tensor& values,
                        bool accumulate = false) const;
 
+  // index_add: Add source values to self at specified indices along dim
+  at::Tensor index_add(int64_t dim,
+                       const at::Tensor& index,
+                       const at::Tensor& source,
+                       const at::Scalar& alpha = 1) const;
+
+  // index_add_: In-place version of index_add
+  at::Tensor& index_add_(int64_t dim,
+                         const at::Tensor& index,
+                         const at::Tensor& source,
+                         const at::Scalar& alpha = 1) const;
+
   Tensor toType(ScalarType t) const {
     return Tensor(paddle::experimental::cast(
         tensor_, compat::_PD_AtenScalarTypeToPhiDataType(t)));

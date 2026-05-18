@@ -40,6 +40,7 @@
 #include <ATen/ops/full.h>
 #include <ATen/ops/hsplit.h>
 #include <ATen/ops/index.h>
+#include <ATen/ops/index_add.h>
 #include <ATen/ops/index_put.h>
 #include <ATen/ops/is_coalesced.h>
 #include <ATen/ops/item.h>
