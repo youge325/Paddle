@@ -164,6 +164,15 @@ function exec_abi_compatibility_check() {
     fi
 }
 
+function exec_libtorch_aten_ops_signature_check() {
+    python -m pip install torch==2.9.1 --index-url https://download.pytorch.org/whl/cpu 1>nul
+    python ${PADDLE_ROOT}/tools/check_libtorch_aten_ops_signature.py
+    aten_signature_check_error=$?
+    if [ "$aten_signature_check_error" != "0" ]; then
+        exit $aten_signature_check_error
+    fi
+}
+
 export PATH=/usr/local/python3.10.0/bin:/usr/local/python3.10.0/include:/usr/local/bin:${PATH}
 echo "export PATH=${PATH}" >> ~/.bashrc
 export LD_LIBRARY_PATH=/usr/local/cuda-11.8/compat:$LD_LIBRARY_PATH
@@ -179,5 +188,7 @@ pip config set global.cache-dir "/home/data/cfs/.cache/pip"
 pip install --upgrade pip 1>nul
 pip install -r "${work_dir}/python/requirements.txt" 1>nul
 pip install -r "${work_dir}/python/unittest_py/requirements.txt" 1>nul
+
+exec_libtorch_aten_ops_signature_check
 
 exec_samplecode_checking

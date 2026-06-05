@@ -1,0 +1,398 @@
+{
+  "description": "Baseline of known Paddle compat ATen ops signature differences against torch 2.9.1 CPU headers.",
+  "issues": [
+    {
+      "extra": [
+        "at::inline at::Tensor cat(const std::vector<at::Tensor>& tensors,int64_t dim=0)"
+      ],
+      "missing": [],
+      "title": "cat.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor expand(const at::Tensor& self,at::IntArrayRef size,bool implicit=false)"
+      ],
+      "missing": [],
+      "title": "expand.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor flatten(const at::Tensor& self,int64_t start_dim,int64_t end_dim)"
+      ],
+      "missing": [],
+      "title": "flatten.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::Tensor flatten(int64_t start_dim,int64_t end_dim)const"
+      ],
+      "missing": [],
+      "title": "flatten.h: Tensor::flatten declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor index(const at::Tensor& self,ArrayRef<at::indexing::TensorIndex>indices)",
+        "at::inline at::Tensor index(const at::Tensor& self,std::initializer_list<at::indexing::TensorIndex>indices)"
+      ],
+      "missing": [],
+      "title": "index.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "inline at::Tensor index(std::initializer_list<at::indexing::TensorIndex>indices)const"
+      ],
+      "missing": [],
+      "title": "index.h: Tensor::index declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor index_put(const at::Tensor& self,const c10::List<std::optional<at::Tensor>>& indices,const at::Tensor& values,bool accumulate)",
+        "at::inline at::Tensor& index_put_(at::Tensor& self,const c10::List<std::optional<at::Tensor>>& indices,const at::Scalar& v,bool accumulate)",
+        "at::inline at::Tensor& index_put_(at::Tensor& self,const c10::List<std::optional<at::Tensor>>& indices,const at::Tensor& values,bool accumulate)"
+      ],
+      "missing": [],
+      "title": "index_put.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "inline at::Tensor index(std::initializer_list<at::indexing::TensorIndex>indices)const"
+      ],
+      "missing": [],
+      "title": "index_put.h: Tensor::index declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::Tensor& index_put_(const c10::List<std::optional<at::Tensor>>& indices,const at::Scalar& v,bool accumulate=false)const"
+      ],
+      "missing": [],
+      "title": "index_put.h: Tensor::index_put_ declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline at::Tensor& Tensor::index_put_(const c10::List<std::optional<at::Tensor>>& indices,const at::Scalar& v,bool accumulate)const"
+      ],
+      "missing": [],
+      "title": "index_put.h: Tensor::index_put_ definition signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor masked_select(const at::Tensor self,const at::Tensor& mask)"
+      ],
+      "missing": [],
+      "title": "masked_select.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "inline at::Tensor Tensor::new_empty(at::IntArrayRef size,std::optional<at::ScalarType>dtype,std::optional<at::Layout>,std::optional<at::Device>device,std::optional<bool>pin_memory)const"
+      ],
+      "missing": [],
+      "title": "new_empty.h: Tensor::new_empty definition signatures differ"
+    },
+    {
+      "extra": [
+        "inline at::Tensor Tensor::new_full(at::IntArrayRef size,const at::Scalar& fill_value,std::optional<at::ScalarType>dtype,std::optional<at::Layout>,std::optional<at::Device>device,std::optional<bool>pin_memory)const"
+      ],
+      "missing": [],
+      "title": "new_full.h: Tensor::new_full definition signatures differ"
+    },
+    {
+      "extra": [
+        "inline at::Tensor Tensor::new_ones(at::IntArrayRef size,std::optional<at::ScalarType>dtype,std::optional<at::Layout>,std::optional<at::Device>device,std::optional<bool>pin_memory)const"
+      ],
+      "missing": [],
+      "title": "new_ones.h: Tensor::new_ones definition signatures differ"
+    },
+    {
+      "extra": [
+        "inline at::Tensor Tensor::new_zeros(at::IntArrayRef size,std::optional<at::ScalarType>dtype,std::optional<at::Layout>,std::optional<at::Device>device,std::optional<bool>pin_memory)const"
+      ],
+      "missing": [],
+      "title": "new_zeros.h: Tensor::new_zeros definition signatures differ"
+    },
+    {
+      "extra": [
+        "void record_stream(at::cuda::CUDAStream s)const"
+      ],
+      "missing": [],
+      "title": "record_stream.h: Tensor::record_stream declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline void Tensor::record_stream(at::cuda::CUDAStream s)const"
+      ],
+      "missing": [],
+      "title": "record_stream.h: Tensor::record_stream definition signatures differ"
+    },
+    {
+      "extra": [
+        "inline at::Tensor Tensor::rename(std::optional<at::DimnameList>)const"
+      ],
+      "missing": [],
+      "title": "rename.h: Tensor::rename definition signatures differ"
+    },
+    {
+      "extra": [
+        "at::Tensor slice(int64_t dim=0,std::optional<int64_t>start=std::nullopt,std::optional<int64_t>end=std::nullopt,int64_t step=1)"
+      ],
+      "missing": [],
+      "title": "slice.h: Tensor::slice declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline at::Tensor Tensor::slice(int64_t dim,std::optional<int64_t>start,std::optional<int64_t>end,int64_t step)"
+      ],
+      "missing": [],
+      "title": "slice.h: Tensor::slice definition signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor sparse_coo_tensor(const at::Tensor& indices,const at::Tensor& values,at::IntArrayRef size,at::TensorOptions options={})",
+        "at::inline at::Tensor sparse_coo_tensor(const at::Tensor& indices,const at::Tensor& values,at::IntArrayRef size,std::optional<at::ScalarType>dtype,std::optional<at::Layout>layout,std::optional<at::Device>device,std::optional<bool>pin_memory)",
+        "at::inline at::Tensor sparse_coo_tensor(const at::Tensor& indices,const at::Tensor& values,at::TensorOptions options={})"
+      ],
+      "missing": [],
+      "title": "sparse_coo_tensor.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor sparse_csr_tensor(const at::Tensor& crow_indices,const at::Tensor& col_indices,const at::Tensor& values,at::IntArrayRef size,at::TensorOptions options={})",
+        "at::inline at::Tensor sparse_csr_tensor(const at::Tensor& crow_indices,const at::Tensor& col_indices,const at::Tensor& values,at::TensorOptions options={})"
+      ],
+      "missing": [],
+      "title": "sparse_csr_tensor.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline std::vector<at::Tensor>split(const at::Tensor& self,at::IntArrayRef split_sizes,int64_t dim=0)",
+        "at::inline std::vector<at::Tensor>split_symint(const at::Tensor& self,c10::SymIntArrayRef split_sizes,int64_t dim=0)"
+      ],
+      "missing": [],
+      "title": "split.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>split(at::IntArrayRef split_sizes,int64_t dim)const",
+        "std::vector<at::Tensor>split(int64_t split_size,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "split.h: Tensor::split declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline std::vector<at::Tensor>Tensor::split(at::IntArrayRef split_sizes,int64_t dim=0)const",
+        "inline std::vector<at::Tensor>Tensor::split(int64_t split_size,int64_t dim=0)const"
+      ],
+      "missing": [],
+      "title": "split.h: Tensor::split definition signatures differ"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>split_symint(c10::SymInt split_size,int64_t dim)const",
+        "std::vector<at::Tensor>split_symint(c10::SymIntArrayRef split_sizes,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "split.h: Tensor::split_symint declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline std::vector<at::Tensor>Tensor::split_symint(c10::SymInt split_size,int64_t dim=0)const",
+        "inline std::vector<at::Tensor>Tensor::split_symint(c10::SymIntArrayRef split_sizes,int64_t dim=0)const"
+      ],
+      "missing": [],
+      "title": "split.h: Tensor::split_symint definition signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline std::vector<at::Tensor>split_with_sizes(const at::Tensor& self,at::IntArrayRef split_sizes,int64_t dim)",
+        "at::inline std::vector<at::Tensor>split_with_sizes_symint(const at::Tensor& self,c10::SymIntArrayRef split_sizes,int64_t dim)"
+      ],
+      "missing": [],
+      "title": "split_with_sizes.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>split_with_sizes(at::IntArrayRef split_sizes,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "split_with_sizes.h: Tensor::split_with_sizes declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>split_with_sizes_symint(c10::SymIntArrayRef split_sizes,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "split_with_sizes.h: Tensor::split_with_sizes_symint declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::Tensor std(at::OptionalIntArrayRef dim,bool unbiased=true,bool keepdim=false)const",
+        "at::Tensor std(at::OptionalIntArrayRef dim,const std::optional<at::Scalar>& correction,bool keepdim=false)const",
+        "at::Tensor std(bool unbiased=true)const"
+      ],
+      "missing": [],
+      "title": "std.h: Tensor::std declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor stft(const at::Tensor& self,int64_t n_fft,std::optional<int64_t>hop_length=std::nullopt,std::optional<int64_t>win_length=std::nullopt,const std::optional<at::Tensor>& window=std::nullopt,bool normalized=false,std::optional<bool>onesided=std::nullopt,std::optional<bool>return_complex=std::nullopt,std::optional<bool>align_to_window=std::nullopt)"
+      ],
+      "missing": [],
+      "title": "stft.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::Tensor stft(int64_t n_fft,std::optional<int64_t>hop_length=std::nullopt,std::optional<int64_t>win_length=std::nullopt,const std::optional<at::Tensor>& window=std::nullopt,bool normalized=false,std::optional<bool>onesided=std::nullopt,std::optional<bool>return_complex=std::nullopt,std::optional<bool>align_to_window=std::nullopt)const"
+      ],
+      "missing": [],
+      "title": "stft.h: Tensor::stft declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::\\ inline at::Tensor tensor(std::initializer_list<T>values,\\ const at::TensorOptions& options)"
+      ],
+      "missing": [],
+      "title": "tensor.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>tensor_split(at::IntArrayRef indices,int64_t dim)const",
+        "std::vector<at::Tensor>tensor_split(const at::Tensor& tensor_indices_or_sections,int64_t dim)const",
+        "std::vector<at::Tensor>tensor_split(int64_t sections,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "tensor_split.h: Tensor::tensor_split declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline std::vector<at::Tensor>Tensor::tensor_split(at::IntArrayRef indices,int64_t dim=0)const",
+        "inline std::vector<at::Tensor>Tensor::tensor_split(const at::Tensor& tensor_indices_or_sections,int64_t dim=0)const",
+        "inline std::vector<at::Tensor>Tensor::tensor_split(int64_t sections,int64_t dim=0)const"
+      ],
+      "missing": [],
+      "title": "tensor_split.h: Tensor::tensor_split definition signatures differ"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>tensor_split_symint(c10::SymInt sections,int64_t dim)const",
+        "std::vector<at::Tensor>tensor_split_symint(c10::SymIntArrayRef indices,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "tensor_split.h: Tensor::tensor_split_symint declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline std::vector<at::Tensor>Tensor::tensor_split_symint(c10::SymInt sections,int64_t dim=0)const",
+        "inline std::vector<at::Tensor>Tensor::tensor_split_symint(c10::SymIntArrayRef indices,int64_t dim=0)const"
+      ],
+      "missing": [],
+      "title": "tensor_split.h: Tensor::tensor_split_symint definition signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor transpose(const at::Tensor& self,const at::Scalar& dim0,const at::Scalar& dim1)"
+      ],
+      "missing": [],
+      "title": "transpose.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor unflatten_symint(const at::Tensor& self,const int64_t dim,c10::SymIntArrayRef sizes)"
+      ],
+      "missing": [],
+      "title": "unflatten.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline std::vector<at::Tensor>unsafe_split(const at::Tensor& self,int64_t split_size,int64_t dim)",
+        "at::inline std::vector<at::Tensor>unsafe_split_symint(const at::Tensor& self,c10::SymInt split_size,int64_t dim)"
+      ],
+      "missing": [],
+      "title": "unsafe_split.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>unsafe_split(int64_t split_size,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "unsafe_split.h: Tensor::unsafe_split declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>unsafe_split_symint(c10::SymInt split_size,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "unsafe_split.h: Tensor::unsafe_split_symint declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::inline std::vector<at::Tensor>unsafe_split_with_sizes(const at::Tensor& self,at::IntArrayRef split_sizes,int64_t dim)",
+        "at::inline std::vector<at::Tensor>unsafe_split_with_sizes_symint(const at::Tensor& self,c10::SymIntArrayRef split_sizes,int64_t dim)"
+      ],
+      "missing": [],
+      "title": "unsafe_split_with_sizes.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>unsafe_split_with_sizes(at::IntArrayRef split_sizes,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "unsafe_split_with_sizes.h: Tensor::unsafe_split_with_sizes declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "std::vector<at::Tensor>unsafe_split_with_sizes_symint(c10::SymIntArrayRef split_sizes,int64_t dim)const"
+      ],
+      "missing": [],
+      "title": "unsafe_split_with_sizes.h: Tensor::unsafe_split_with_sizes_symint declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor unsqueeze(const at::Tensor& self)",
+        "at::inline at::Tensor unsqueeze(const at::Tensor& self,at::IntArrayRef dim)"
+      ],
+      "missing": [],
+      "title": "unsqueeze.h: ATen free function signatures differ"
+    },
+    {
+      "extra": [
+        "at::Tensor unsqueeze()const",
+        "at::Tensor unsqueeze(at::IntArrayRef dim)const"
+      ],
+      "missing": [],
+      "title": "unsqueeze.h: Tensor::unsqueeze declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline at::Tensor Tensor::unsqueeze()const",
+        "inline at::Tensor Tensor::unsqueeze(at::IntArrayRef dim)const"
+      ],
+      "missing": [],
+      "title": "unsqueeze.h: Tensor::unsqueeze definition signatures differ"
+    },
+    {
+      "extra": [
+        "at::Tensor& unsqueeze_()const",
+        "at::Tensor& unsqueeze_(at::IntArrayRef dim)const"
+      ],
+      "missing": [],
+      "title": "unsqueeze.h: Tensor::unsqueeze_ declaration signatures differ in compat/ATen/core/TensorBody.h"
+    },
+    {
+      "extra": [
+        "inline at::Tensor& Tensor::unsqueeze_()const",
+        "inline at::Tensor& Tensor::unsqueeze_(at::IntArrayRef dim)const"
+      ],
+      "missing": [],
+      "title": "unsqueeze.h: Tensor::unsqueeze_ definition signatures differ"
+    },
+    {
+      "extra": [
+        "at::inline at::Tensor view(const at::Tensor& self,at::IntArrayRef size)",
+        "at::inline at::Tensor view(const at::Tensor& self,at::ScalarType dtype)"
+      ],
+      "missing": [],
+      "title": "view.h: ATen free function signatures differ"
+    }
+  ],
+  "torch_version": "2.9.1"
+}
